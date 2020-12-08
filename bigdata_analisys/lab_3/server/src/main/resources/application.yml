@@ -1,0 +1,18 @@
+spring:
+ application:
+  name: server
+
+server:
+ port: 8765
+ ssl:
+  enabled: true
+  client-auth: need
+  key-store: classpath:server.jks
+  key-store-password: vale9519
+  key-alias: server
+  key-store-type: JKS
+  key-store-provider: SUN
+  trust-store: classpath:server.jks
+  trust-store-password: vale9519
+  trust-store-type: JKS
+
