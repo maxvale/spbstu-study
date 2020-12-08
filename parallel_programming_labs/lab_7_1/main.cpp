@@ -32,17 +32,19 @@ int main(int argc, char** argv)
     result = x * (i + x*2 + 1);
     b[i] = result;
   }
+  std::cout << "Calculation time: ";
   std::cout << clock() - t_start << std::endl;
   //printArray(b, N);
 
   t_start = clock();
-#pragma omp parallel for private(i, x) shared(a) reduction(+:result)
+#pragma omp parallel for private(i, x) shared(a)
   for (i = 1; i < N; i++)
   {
     x = sqrt(i);
-    result = x * x * (x + 2) + x;
+    result = x * (i + x*2 + 1);
     a[i] = result;
   }
+  std::cout << "Calculation time: ";
   std::cout << clock() - t_start << std::endl;
 
   //printArray(a, N);
