@@ -1,4 +1,10 @@
 .idea/
 bigdata_analisys/.idea
 bigdata_analisys/__pycache__
+bigdata_analisys/lab_1/.pytest_cache
+bigdata_analisys/lab_1/deobfuscated_data.xml
+bigdata_analisys/lab_1/obfuscated_data.xml
+bigdata_analisys/lab_2/.idea
+bigdata_analisys/lab_2/.gradle
+bigdata_analisys/lab_2/build
 parallel_programming_labs/.idea
