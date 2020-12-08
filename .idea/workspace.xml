@@ -19,13 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e37910f1-f2be-413a-93fd-0273773cfc89" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/parallel_programming_labs/lab_9/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parallel_programming_labs/lab_9/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parallel_programming_labs/lab_9/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parallel_programming_labs/lab_7_1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/parallel_programming_labs/lab_7_1/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parallel_programming_labs/lab_7_2/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/parallel_programming_labs/lab_7_2/main.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="e37910f1-f2be-413a-93fd-0273773cfc89" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,6 +29,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="JupyterTrust" id="9f8ac5a0-9622-4b3a-9c82-6187d0a8113d" />
   <component name="ProjectId" id="1jgLTINDCr4acKHhSceut54hP2C" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -45,7 +40,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../spbstu-smart-library" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -55,6 +50,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1604220793985</updated>
+      <workItem from="1607426647183" duration="28000" />
     </task>
     <servers />
   </component>
