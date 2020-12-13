@@ -8,3 +8,6 @@ bigdata_analisys/lab_2/.idea
 bigdata_analisys/lab_2/.gradle
 bigdata_analisys/lab_2/build
 parallel_programming_labs/.idea
+parallel_programming_labs/lab*/.idea
+parallel_programming_labs/lab*/cmake-build-debug
+testing_verification/*

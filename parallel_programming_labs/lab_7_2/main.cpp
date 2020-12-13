@@ -3,7 +3,7 @@
 #include <omp.h>
 #include <vector>
 
-const int NUM = 1000;
+const int NUM = 1000000;
 
 std::vector<int> createVector(int len)
 {
@@ -110,6 +110,8 @@ int main(int argc, char **argv)
   }
   std::cout << "Calculation time: " << clock() - t_start << std::endl;
   std::cout << "Relative complement of A in B: " << std::boolalpha << alcheck << std::endl;
+  std::cout << "------------------" << std::endl;
+  std::cout << "Using OMP" << std::endl;
   std::cout << "------------------" << std::endl;
 
   t_start = clock();
