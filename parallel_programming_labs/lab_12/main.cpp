@@ -6,7 +6,7 @@
 #include <iterator>
 #include "mpi.h"
 
-const int N = 10;
+const int N = 1000;
 const double EPS = 0.001;
 
 double generateData (std::vector<std::vector<double>> &A, std::vector<double> &B, std::vector<double> &X) {
@@ -60,7 +60,6 @@ int main(int argc, char** argv) {
 
   generateData(A, B, X0);
   X = X0;
-  printVector(X0);
   start_time = std::clock();
   do {
     for (int i = 0; i < N; i++)
@@ -82,9 +81,6 @@ int main(int argc, char** argv) {
     }
   } while (norm_ > EPS);
   end_time = clock();
-
-  printVector(X_);
-  std::cout << "Execution time without MPI: " << end_time - start_time << std::endl;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
