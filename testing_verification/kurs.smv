@@ -1,0 +1,162 @@
+MODULE PlainTask (cmd, prior)
+VAR
+    state: {suspended, ready, running};
+    priority: 0..3;
+    dead: boolean;
+
+ASSIGN
+    init(state)    := suspended;
+    init(priority) := prior;
+    init(dead)     := FALSE;
+
+    next(state) := case
+        cmd = nop                            : state;
+        state = suspended & cmd = activate   : ready;
+        state = ready     & cmd = start      : running;
+        state = running   & cmd = preempt    : ready;
+        state = running   & cmd = terminate  : suspended;
+        TRUE                                 : state;
+    esac;
+
+    next(priority) := priority;
+
+	next(dead) := case
+		cmd = terminate	: TRUE;
+		TRUE: FALSE;
+	esac;
+
+
+MODULE ExtendedTask (cmd, prior)
+VAR
+    state: {suspended, ready, running, waiting};
+    priority: 0..3;
+    wait_event: boolean;
+    dead: boolean;
+
+ASSIGN
+    init(state)      := suspended;
+    init(priority)   := prior;
+    init(wait_event) := FALSE;
+    init(dead)       := FALSE;
+
+    next(state) := case
+        cmd = nop                            : state;
+        state = suspended & cmd = activate   : ready;
+        state = ready     & cmd = start      : running;
+        state = running   & cmd = preempt    : ready;
+        state = running   & cmd = terminate  : suspended;
+        state = running   & cmd = wait       : waiting;
+        state = waiting   & cmd = release    : ready;
+        TRUE                                 : state;
+    esac;
+
+    next(priority) := priority; 
+
+    next(wait_event) := case
+        cmd = wait              : TRUE;
+        TRUE                    : FALSE;
+    esac;
+
+    next(dead) := case
+		cmd = terminate	: TRUE;
+		TRUE: FALSE;
+	esac;
+
+MODULE TaskScheduler (task_0, task_1, task_2, task_3)
+VAR
+    cmd_0 : {nop, activate, start, wait, release, preempt, terminate};
+    cmd_1 : {nop, activate, start, wait, release, preempt, terminate};
+    cmd_2 : {nop, activate, start, preempt, terminate};
+    cmd_3 : {nop, activate, start, preempt, terminate};
+
+    next_task : boolean;
+    priority : 0..3;
+    event_starts : boolean;
+
+ASSIGN
+    init(cmd_0)     := nop;
+    init(cmd_1)     := nop;
+    init(cmd_2)     := nop;
+    init(cmd_3)     := nop;
+    init(next_task) := FALSE;
+    init(priority)  := 3;
+    init(event_starts) := FALSE;
+    
+
+    next(priority) := case
+        task_0.state = ready & task_0.priority > priority     : task_0.priority;
+        task_1.state = ready & task_1.priority > priority     : task_1.priority;
+        task_2.state = ready & task_2.priority > priority     : task_2.priority;
+        task_3.state = ready & task_3.priority > priority     : task_3.priority;
+        task_0.priority = priority & task_0.wait_event = TRUE : task_1.priority;
+        task_1.priority = priority & task_1.wait_event = TRUE : task_2.priority;
+        TRUE                                                  : priority;
+    esac;
+
+    next(event_starts) := case
+        task_2.state = running : TRUE;
+        task_3.state = running : TRUE;
+        TRUE : FALSE;
+    esac;
+
+    next(cmd_0) := case
+        task_0.dead = TRUE : nop;
+        task_0.dead = FALSE & task_0.state = suspended : activate;
+        task_0.dead = FALSE & task_0.priority = priority & task_0.state = ready : start;
+        task_0.dead = FALSE & event_starts = FALSE & task_0.state = running : wait;
+        task_0.dead = FALSE & event_starts = TRUE & task_0.state = waiting : release;
+        task_0.dead = FALSE & task_0.priority = priority & task_0.state = running : terminate;
+        task_0.dead = FALSE & task_0.priority < priority & task_0.state = running : preempt;
+
+        TRUE : nop;
+    esac;
+
+    next(cmd_1) := case
+        task_1.dead = TRUE : nop;
+        task_1.dead = FALSE & task_1.state = suspended : activate;
+        task_1.dead = FALSE & task_1.priority = priority & task_1.state = ready : start;
+        task_1.dead = FALSE & event_starts = FALSE & task_1.state = running : wait;
+        task_1.dead = FALSE & event_starts = TRUE & task_1.state = waiting : release;
+        task_1.dead = FALSE & task_1.priority = priority & task_1.state = running : terminate;
+        task_1.dead = FALSE & task_1.priority < priority & task_1.state = running : preempt;
+
+        TRUE : nop;
+    esac;
+
+    next(cmd_2) := case
+        task_2.dead = TRUE : nop;
+        task_2.dead = FALSE & task_2.state = suspended : activate;
+        task_2.dead = FALSE & task_2.priority = priority & task_2.state = ready : start;
+        task_2.dead = FALSE & task_2.priority = priority & task_2.state = running : terminate;
+        task_2.dead = FALSE & task_2.priority < priority & task_2.state = running : preempt;
+        TRUE : nop;
+    esac;
+
+    next(cmd_3) := case
+        task_3.dead = TRUE : nop;
+        task_3.dead = FALSE & task_3.state = suspended : activate;
+        task_3.dead = FALSE & task_3.priority = priority & task_3.state = ready : start;
+        task_3.dead = FALSE & task_3.priority = priority & task_3.state = running : terminate;
+        task_3.dead = FALSE & task_3.priority < priority & task_3.state = running : preempt;
+        TRUE : nop;
+    esac;
+
+MODULE main
+VAR
+    Task_0 : ExtendedTask(Scheduler.cmd_0, 3);
+    Task_1 : ExtendedTask(Scheduler.cmd_1, 2);
+    Task_2 : PlainTask(Scheduler.cmd_2, 1);
+    Task_3 : PlainTask(Scheduler.cmd_3, 0);
+
+    Scheduler : TaskScheduler(Task_0, Task_1, Task_2, Task_3);
+
+
+CTLSPEC AG (Task_0.priority > Task_1.priority & Task_0.state = ready & Task_1.state = running 
+				-> AX(Task_1.state != running));
+				
+CTLSPEC AG (!(Task_0.state = running & Task_1.state = running));
+CTLSPEC AG (!(Task_0.state = running & Task_2.state = running));
+CTLSPEC AG (!(Task_0.state = running & Task_3.state = running));
+CTLSPEC AG (!(Task_1.state = running & Task_2.state = running));
+CTLSPEC AG (!(Task_1.state = running & Task_3.state = running));
+CTLSPEC AG (!(Task_2.state = running & Task_3.state = running));

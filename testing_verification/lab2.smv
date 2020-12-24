@@ -1,0 +1,66 @@
+MODULE hairdresser_mod(sofa, card)
+
+VAR
+    action: {serve, cash, wait};
+
+INIT action = wait;
+
+TRANS (action = serve) & (card = TRUE) -> next(action) = cash & next(card) in {TRUE, FALSE};
+TRANS (action = serve) -> next(action) = cash;
+TRANS (action = cash) & (sofa > 0) -> next(action) = serve & next(sofa) = sofa - 1;
+TRANS (action = wait) & (sofa > 0) -> next(action) = serve & next(sofa) = sofa - 1;
+TRANS (action = cash) & (sofa = 0) -> next(action) = wait;
+TRANS (action = wait) & (sofa = 0) -> next(action) = wait;
+
+MODULE salon_mod
+
+DEFINE
+    sofa_size := 3;
+    stand_size := 3;
+
+VAR
+    new_client: boolean;
+    sofa: 0..sofa_size;
+    stand: 0..stand_size;
+    month: 0..30;
+    card: boolean;
+    hd1: hairdresser_mod(sofa, card);
+    hd2: hairdresser_mod(sofa, card);
+    hd3: hairdresser_mod(sofa, card);
+
+INIT sofa = 0;
+INIT stand = 0;
+INIT month = 0;
+INIT card;
+
+TRANS (new_client = TRUE) & (sofa < sofa_size) -> next(sofa) = sofa + 1;
+TRANS (new_client = TRUE) & (sofa = sofa_size) & (stand < stand_size) -> next(stand) = stand + 1;
+TRANS (new_client = FALSE) -> next(sofa) = sofa & next(stand) = stand
+TRANS (stand > 0) & (sofa < sofa_size) -> next(stand) = stand - 1 & next(sofa) = sofa + 1;
+
+TRANS (month = 30) -> next(month) = 0;
+TRANS (month = 0) -> next(card) = TRUE;
+TRANS !(month = 0) -> next(card) = card;
+
+ASSIGN
+    next(new_client) := {TRUE, FALSE};
+    next(month) := month + 1;
+
+
+MODULE main
+
+VAR
+    salon: salon_mod;
+
+
+CTLSPEC AG (((salon.new_client = TRUE) & (salon.stand = 3)) -> AX salon.stand = 3);
+
+CTLSPEC AG ((salon.hd1.action = serve) -> AX salon.hd1.action = cash);
+CTLSPEC AG ((salon.hd2.action = serve) -> AX salon.hd2.action = cash);
+CTLSPEC AG ((salon.hd3.action = serve) -> AX salon.hd3.action = cash);
+
+CTLSPEC AG ((salon.sofa = 0 & salon.hd1.action = wait) -> AX salon.hd1.action = wait);
+CTLSPEC AG ((salon.sofa = 0 & salon.hd2.action = wait) -> AX salon.hd2.action = wait);
+CTLSPEC AG ((salon.sofa = 0 & salon.hd3.action = wait) -> AX salon.hd3.action = wait);
+
+CTLSPEC AG ((salon.card = FALSE & !(salon.month = 0)) -> AX salon.card = FALSE);

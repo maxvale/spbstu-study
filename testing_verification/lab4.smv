@@ -1,0 +1,115 @@
+MODULE Button(reset)
+VAR
+    state : { pressed, nop };
+    desired_floor : 1..9;
+INIT state = nop;
+INIT desired_floor = 1;
+ASSIGN
+    next(state) :=
+        case
+            (reset = FALSE) & (state = pressed) : pressed;
+            (reset = TRUE) & (state = pressed) : nop;
+            state = nop : { pressed, nop };
+        esac;
+    next(desired_floor) :=
+        case
+            state = nop : 1..9;
+            state = pressed : desired_floor;
+        esac;
+
+MODULE Door(command)
+VAR
+    state : { opened, closed };
+INIT state = opened;
+ASSIGN
+    next(state) :=
+        case
+            command = open : opened;
+            command = close : closed;
+            command = nop : state;
+        esac;
+
+MODULE Cage(command, desired_floor)
+VAR
+    floor : 1..9;
+    state : { move, wait };
+INIT state = wait;
+ASSIGN
+    next(state) :=
+        case
+            command = up_down : move;
+            command = stop : wait;
+            command = nop : state;
+        esac;
+    next(floor) :=
+        case
+            command = stop : desired_floor;
+            TRUE : floor;
+        esac;
+
+MODULE Controller(button_state, door_state, cage_state)
+VAR
+    phase : { start, stop, wait };
+    button_reset : boolean;
+    door_command : { open, close, nop };
+    cage_command : { up_down, stop, nop };
+INIT phase = wait;
+INIT button_reset = FALSE;
+INIT door_command = nop;
+INIT cage_command = nop;
+ASSIGN
+    next(phase) :=
+        case
+            (cage_state = wait) & (button_state = pressed) & (door_state = opened) & (phase = wait): start;
+            (cage_state = wait) & (button_state = pressed) & (door_state = opened) & (phase = stop): wait;
+            cage_state = move : stop;
+            TRUE : phase;
+        esac;
+    next(button_reset) :=
+        case
+            (cage_state = wait) & (button_state = pressed) & (door_state = opened) & (phase = stop) : TRUE;
+            TRUE : FALSE;
+        esac;
+    next(door_command) :=
+        case
+            (cage_state = wait) & (button_state = pressed) & (door_state = opened) & (phase = start) : close;
+            (cage_state = wait) & (button_state = pressed) & (door_state = closed) & (phase = stop) : open;
+            TRUE : nop;
+        esac;
+    next(cage_command) :=
+        case
+            (cage_state = wait) & (button_state = pressed) & (door_state = closed) & (phase = start) : up_down;
+            cage_state = move : stop;
+            TRUE : nop;
+        esac;
+
+MODULE main
+
+VAR
+    button: Button(controller.button_reset);
+    door: Door(controller.door_command);
+    cage: Cage(controller.cage_command, button.desired_floor);
+    controller: Controller(button.state, door.state, cage.state);
+
+CTLSPEC AG (controller.cage_command = up_down -> AF (controller.cage_command = stop));
+CTLSPEC AG (cage.state = move -> AX (controller.cage_command = stop));
+
+CTLSPEC AG ((controller.cage_command = stop) & !(cage.state = move) -> FALSE | AX(cage.state = wait));
+CTLSPEC AG ((controller.cage_command = up_down) & !(cage.state = wait) -> FALSE | AX(cage.state = move));
+
+CTLSPEC AG ((controller.door_command = open) & !(door.state = closed) -> FALSE | AX(door.state = opened));
+CTLSPEC AG ((controller.door_command = close) & !(door.state = opened) -> FALSE | AX(door.state = closed));
+
+CTLSPEC AG (button.state = pressed -> AF (button.state = nop));
+
+CTLSPEC AG ((controller.button_reset = TRUE) & !(cage.state = wait) & !(door.state = opened) -> FALSE);
+
+CTLSPEC AG ((cage.state = wait) & (door.state = opened) & (controller.phase = stop) -> AX(controller.button_reset = TRUE));
+
+CTLSPEC AG (cage.state = move -> door.state = closed);
+CTLSPEC AG (cage.state = move -> button.state = pressed);
+
+CTLSPEC AG (button.state = nop -> controller.door_command = nop & controller.cage_command = nop & cage.state = wait & door.state = opened);
+
+CTLSPEC AG ((cage.floor < 1) | (cage.floor > 9) -> FALSE)
+CTLSPEC AG (button.state = pressed -> AF(button.desired_floor = cage.floor))

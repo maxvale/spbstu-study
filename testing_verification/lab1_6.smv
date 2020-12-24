@@ -1,0 +1,34 @@
+MODULE secret_store(index, secrets, sender1, sender2)
+ASSIGN
+	init(secrets[index]) := 0ud6_1 << index;	
+	next(secrets[index]) := case
+					(sender1.sender != sender2.sender) & (sender1.sender = index): secrets[index] | secrets[sender2.sender];
+					(sender1.sender != sender2.sender) & (sender2.sender = index): secrets[index] | secrets[sender1.sender];
+					TRUE: secrets[index];
+                            esac;
+	
+
+MODULE sender_generator
+VAR
+    sender: 0..5;
+ASSIGN
+    next(sender) := case
+                    TRUE: 0..5;
+                    esac; 
+
+MODULE main
+DEFINE
+	N := 5;
+VAR
+	secrets: array 0..N of word[6];
+	sender1: sender_generator;
+    	sender2: sender_generator;
+	girl1: secret_store(0, secrets, sender1, sender2);
+	girl2: secret_store(1, secrets, sender1, sender2);
+	girl3: secret_store(2, secrets, sender1, sender2);
+	girl4: secret_store(3, secrets, sender1, sender2);	
+	girl5: secret_store(4, secrets, sender1, sender2);
+	girl6: secret_store(5, secrets, sender1, sender2);
+
+
+COMPUTE MIN [secrets[0] = 0ub6_000001 & secrets[1] = 0ub6_000010 & secrets[2] = 0ub6_000100 & secrets[3] = 0ub6_001000 & secrets[4] = 0ub6_010000 & secrets[5] = 0ub6_100000, secrets[0] = 0ud6_63 & secrets[1] = 0ud6_63 & secrets[2] = 0ud6_63 & secrets[3] = 0ud6_63 & secrets[4] = 0ud6_63 & secrets[5] = 0ud6_63];

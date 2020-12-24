@@ -1,0 +1,31 @@
+MODULE random_sender
+VAR
+    sender: 0..3;
+ASSIGN
+    next(sender) := case
+                    TRUE: 0..3;
+                    esac; 
+
+MODULE girl(index, secrets, sender1, sender2)
+ASSIGN
+	init(secrets[index]) := 0ud4_1 << index;	
+	next(secrets[index]) := case
+					(sender1.sender != sender2.sender) & (sender1.sender = index): secrets[index] | secrets[sender2.sender];
+					(sender1.sender != sender2.sender) & (sender2.sender = index): secrets[index] | secrets[sender1.sender];
+					TRUE: secrets[index];
+                            esac;
+	
+MODULE main
+DEFINE
+	N := 3;
+VAR
+	secrets: array 0..N of word[4];
+	sender1: random_sender;
+    	sender2: random_sender;
+	girl1: girl(0, secrets, sender1, sender2);
+	girl2: girl(1, secrets, sender1, sender2);
+	girl3: girl(2, secrets, sender1, sender2);
+	girl4: girl(3, secrets, sender1, sender2);	
+
+
+COMPUTE MIN [secrets[0] = 0ub4_0001 & secrets[1] = 0ub4_0010 & secrets[2] = 0ub4_0100 & secrets[3] = 0ub4_1000, secrets[0] = 0ud4_15 & secrets[1] = 0ud4_15 & secrets[2] = 0ud4_15 & secrets[3] = 0ud4_15];

@@ -1,0 +1,58 @@
+MODULE User(auth)
+VAR
+    status: { NonCritical, Trying, Critical };
+ASSIGN
+    init(status) := NonCritical;
+    next(status) :=
+        case
+            status = NonCritical : { NonCritical, Trying };
+            status = Trying :
+                case
+                    next(auth) = FALSE : Trying;
+                    next(auth) = TRUE : Critical;
+                esac;
+            status = Critical :
+                case
+                    TRUE : { Critical, NonCritical };
+                esac;
+        esac;
+JUSTICE status = Critical;
+VAR
+    req: boolean;
+    crit: boolean;
+ASSIGN
+    req := status = Trying;
+    crit := status = Critical;
+
+--------------------------------------------------
+---- The Arbiter ---------------------------------
+--------------------------------------------------
+MODULE Arbiter(req0, crit0, req1, crit1)
+VAR
+    auth0: boolean;
+ASSIGN
+    init(auth0) := FALSE;
+    next(auth0) :=
+        case
+            req0 & req1: FALSE;
+            TRUE: req0 & !crit1;
+        esac;
+VAR
+    auth1: boolean;
+ASSIGN
+    init(auth1) := FALSE;
+    next(auth1) := req1 & !crit0;
+--------------------------------------------------
+---- The main module -----------------------------
+--------------------------------------------------
+MODULE main
+VAR
+U0: User(Ar.auth0); --- User 0
+U1: User(Ar.auth1); --- User 1
+Ar: Arbiter(U0.req, U0.crit, U1.req, U1.crit);
+
+CTLSPEC AG (U0.status = Critical & U1.status = Critical -> FALSE);
+CTLSPEC AG (U0.status = Trying -> AF (U0.status = Critical));
+CTLSPEC AG (U1.status = Trying -> AF (U1.status = Critical));
+CTLSPEC AG (U0.status = Critical -> AF (U0.status = NonCritical));
+CTLSPEC AG (U1.status = Critical -> AF (U1.status = NonCritical));
